@@ -41,7 +41,7 @@ df.to_sql(con=engine, name='green_taxi_data', if_exists='replace')
 path_to_key = "/path/to/serviceKey.json"
 
 # Set the dataset and table names
-project_id = 'bcs-field-solutions-sbx'
+project_id = 'my-project-id'
 dataset_id = "bq_dataset"
 table_id = 'green_taxi'
 
