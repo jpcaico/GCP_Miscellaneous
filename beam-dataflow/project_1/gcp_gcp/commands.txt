@@ -1,0 +1,16 @@
+#gcs
+# To execute the job template in Dataflow
+
+1. Enter Dataflow
+2. Create job from template
+3. Name it, put region
+4. Data flow template: Custom template
+5. Find template path (bucket/template)
+6. Add temp location
+7. Execute job
+
+#bigquery
+From apache beam to bigquery, data needs to be in a simple dictionary (key:value)
+
+
+

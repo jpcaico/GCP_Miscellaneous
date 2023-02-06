@@ -1,0 +1,44 @@
+# install apache beam
+pip install apache-beam
+
+#run the python codes locally for learning
+
+
+# enable apis
+You can do it manually in the GCP Console, the services are:
+Dataflow API
+Compute Engine API
+Cloud Logging API
+Cloud Storage
+Google Cloud Storage JSON API
+BigQuery API
+Cloud Pub/Sub API
+Cloud Datastore API
+Cloud Resource Manager API
+
+# create a service account
+API & Services -> Credentials -> Create Credentials -> Service Account -> Add details -> Create Service Account
+
+# create service account keys
+Click on the svc account -> keys -> add key -> craete new key -> json -> create
+
+# create a cloud storage bucket
+
+#execute commands to configure local environment to communicate with GCP
+
+python -m pip install --upgrade pip
+
+pip install 'apache-beam[gcp]'
+
+
+
+
+#### pubsub ###
+
+create topic
+create subscription
+
+run the producer python code
+
+check topic in the UI, and pull messages
+
