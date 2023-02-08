@@ -1,0 +1,8 @@
+1. Create a topic in pubsub named bike-sharing-trips
+2. Uncheck "add default subscription"
+3. Creating a publisher using python, check pubsub_publisher.py file
+4. run the python file
+5. create a pubsub subscription from the topic, name it bike-sharing-trips-subs-1, subscripted to the bike-sharing-trips topic
+6. select pull delivery type
+7. Now, run the pubsub_publisher.py again 
+

@@ -1,0 +1,54 @@
+beam hello-world
+1.create bucket and store log_examples.txt file there
+2.run beam_helloword.py
+# in case to run in a virtual env
+mkdir venv
+cd venv
+python -m venv beam-env
+source beam-env/bin/activate
+pip install --upgrade pip
+pip install wheel
+pip install 'apache-beam[gcp]==2.34.0'
+cd [your hello world python code directory]
+ run code
+deactivate (after use)
+###
+ To run in Cloud Shell
+
+export PROJECT_ID=beam-dataflow-376917
+export REGION=us-west1
+
+python beam_helloworld.py \
+python3 beam_helloworld.py \
+--project=$PROJECT_ID \
+--region=$REGION \
+ --runner=DirectRunner \
+ --job_name=log-job-created
+--temp_location=gs://beam-dataflow-jpcaico/temp
+
+to run a dataflow job switch runner to
+python3 beam_helloworld.py \
+--project=$PROJECT_ID \
+--region=$REGION \
+ --runner=DataflowRunner \
+ --job_name=log-job-created
+--temp_location=gs://beam-dataflow-jpcaico/temp
+
+=======
+
+streaming pipeline no aggregation
+
+create the dataset in bigquery
+
+On one terminal
+
+python3 beam_stream_bikesharing.py \
+--project=$PROJECT_ID \
+--region=$REGION \
+--runner=DirectRunner \
+--temp_location=gs://beam-dataflow-jpcaico/temp
+
+On other terminal 
+python3 pubsub_publisher.py
+
+to check on dataflow change the runner to dataflowrunner
