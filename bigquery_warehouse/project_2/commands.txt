@@ -1,0 +1,149 @@
+# continuation of project 1
+
+Requirements
+
+1. As an operational business user, I need to access the following information:
+ How many bike trips take place daily?
+ What is the daily average trip duration?
+ The top five station names as the starting station that has the longest trip duration.
+ The top five region names that have the shortest total trip durations.
+
+2. The bike trips data is in the GCS bucket, and each bucket folder contains daily data.
+3. The regions data is from the BigQuery public dataset.
+4. New data will be updated daily in the GCS bucket for stations and trips tables.
+
+Here are some initial thoughts and planning:
+1. Since the user is interested in daily measurements, we will create a layer to provide daily aggregation to the user.
+2. There will be new data daily, so we need to plan how to handle the incoming data from GCS directories.
+
+ 3. If you imagine our three main tables, stations, regions, and trips in real life, they are different entities. Stations and regions are static objects, while trips are events. We will get clearer information after checking the data later, but at this point, we should think how to handle both types of information differently.
+4. The data mart is similar to scenario 1. We can use the same datasets to store the result there.
+
+Check the steps on the diagram
+
+There are five principal steps involved here:
+
+1. Create the required datasets.
+2. Load the initial trips and region tables to BigQuery:
+ - Trips from GCS
+ - Regions from the BigQuery public dataset
+3. Handle the daily batch data loading:
+ - For the trips table
+ - For the stations table
+4. Design data modeling for BigQuery.
+5. Store the business questions result in tables.
+
+
+
+Step 1: Create the datasets using Python
+
+create_datasets.py
+
+Step 2a: Initial loading of the trips table into BigQuery
+ load_trips_data.Python
+Step 2b: Load regions data from public dataset
+load_regions_data
+Step 2c: Incremental load of trips table into BigQuery
+load_trips_data_incremental.py
+
+Step 3b: Handle the daily batch data loading for the stations table
+In this section, we want to simulate loading data for our stations table. We will load data from 2018-01-02
+ 
+For the stations table, the approach will be different compared to the trips table. This kind of table may have new records (INSERT), updated records (UPDATE), and removed records (DELETE) records
+
+Snapshot data is not event data. Snapshot data is an object or entity in the real world; it doesn't happen, it's just there.
+
+load_station_data.py
+
+Step 4: Design Data Modeling for BigQuery
+
+Common issues:
+Data is duplicated in many locations.
+• Some values are not consistent across different users and reports.
+• The cost of processing is highly inefficient.
+• The end user doesn't understand how to use the data warehouse objects.
+• The business doesn't trust the data.
+
+In the worst-case scenario, the end user doesn't trust the data in the data warehouse, so the goal of using the data for a business impact has failed.
+In the best-case scenario, a perfect data model is where the end user doesn't need to put any questions to the data engineering team. They can answer any business questions just by looking at the table structures and trust the data 100%. And that's our goal as data engineers.
+But, at the end of the day, it's very difficult to design a perfect data model because there are other aspects that a data engineer needs to think about when designing a data model.
+
+Creating fact and dimension tables
+
+The fact table represents measurements for the station ID by date; the granularity is daily. The dimension table represents stations. 
+
+create_fact_table_daily_trips.py
+This script requires a parameters date in the format yyyy-mm-dd. So, you need to provide one when calling the Python command, like this:
+
+python create_fact_table_daily_trips 2018-01-01
+python create_fact_table_daily_trips 2018-01-02
+
+create_dim_station_table.py
+
+
+Alternative data model using nested data types
+
+CREATE OR REPLACE TABLE `dwh_bikesharing.dim_stations_nested`
+AS
+SELECT
+regions.region_id,
+regions.name as region_name,
+ARRAY_AGG(stations) as stations
+FROM
+`beam-dataflow-376917.raw_bikesharing.regions` regions
+JOIN
+`beam-dataflow-376917.raw_bikesharing.stations` stations
+ON CAST(regions.region_id AS STRING) = stations.region_id
+GROUP BY regions.region_id,
+regions.name;
+
+If you look at the dim_stations_nested table schema: 
+You will see that the stations are part of the regions as repeated columns. And if you query the data, you will see that region_id and region_name are only stored once even though there are multiple station records.
+
+
+Step 5: Store the business questions result in tables
+
+How many bike trips take place daily?
+
+CREATE VIEW dm_operational.bike_trips_daily
+AS
+SELECT trip_date, SUM(total_trips) as total_trips_daily
+FROM dwh_bikesharing.fact_trips_daily
+GROUP BY trip_date;
+
+What is the daily average trip duration
+
+CREATE VIEW dm_operational.daily_avg_trip_duration
+AS
+SELECT trip_date, ROUND(AVG(avg_duration_sec)) as daily_
+average_duration_sec
+FROM dwh_bikesharing.fact_trips_daily
+GROUP BY trip_date;
+
+What are the top five station names of starting stations with the longest trip duration?
+
+CREATE VIEW dm_operational.top_5_station_by_longest_
+duration
+AS
+SELECT trip_date,  station_name, sum_duration_sec
+FROM dwh_bikesharing.fact_trips_daily
+JOIN dwh_bikesharing.dim_stations
+ON start_station_id = station_id
+WHERE trip_date = '2018-01-02'
+ORDER BY sum_duration_sec desc
+LIMIT 5;
+
+What are the top three region names that have the shortest total trip durations?
+
+CREATE VIEW dm_operational.top_3_region_by_shortest_
+duration
+AS
+SELECT trip_date, region_name, SUM(sum_duration_sec) as
+total_sum_duration_sec
+FROM dwh_bikesharing.fact_trips_daily
+JOIN dwh_bikesharing.dim_stations
+ON start_station_id = station_id
+WHERE trip_date = '2018-01-02'
+GROUP BY trip_date, region_name
+ORDER BY total_sum_duration_sec asc
+LIMIT 3;

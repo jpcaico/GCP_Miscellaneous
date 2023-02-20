@@ -52,3 +52,11 @@ On other terminal
 python3 pubsub_publisher.py
 
 to check on dataflow change the runner to dataflowrunner
+
+
+CREATE VIEW bike_trips_realtime
+AS
+SELECT start_station_id, SUM(sum_duration_sec) as sum_duration_
+sec
+FROM bike_trips_straming_sum_aggr
+GROUP BY start_station_id;

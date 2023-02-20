@@ -29,7 +29,7 @@ beam_options_dict = {
 'region':'us-east1',
 #'staging_location': 'gs://beam-dataflow-jpcaico/temp',
 'temp_location':'gs://beam-dataflow-jpcaico/temp',
-#'template_location':'gs://beam-dataflow-jpcaico/template/batch_job',
+'template_location':'gs://beam-dataflow-jpcaico/template/batch_job',
 'job_name': 'log-job-streaming',
 'streaming': True
 }
@@ -49,8 +49,9 @@ if __name__ == '__main__':
 
             schema='trip_id:STRING,start_date:TIMESTAMP,start_station_id:STRING,bike_number:STRING,duration_sec:INTEGER',
                 create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
-    
+                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND)
+       | 'Write to GCS' >> beam.io.WriteToText('gs://beam-dataflow-jpcaico/template/streaming_job', file_name_suffix='.json', num_shards=1)
+    )
     # result = p.run()
     # result.wait_until_finish()
     p.run()

@@ -1,0 +1,22 @@
+mkdir tfinfra
+
+create provider.tf and run
+terraform init
+
+create mynetwork.tf file 
+Define a firewall rule to allow HTTP, SSH, RDP, and ICMP traffic on mynetwork.
+
+
+Define the VM instances by creating a VM instance module.
+create new folder instance
+create new file main.tf
+create new file variables.tf
+
+Add vm instances to mynetwork.tf
+
+
+terraform init
+terraform plan
+terraform apply
+yes
+

@@ -1,0 +1,15 @@
+1. Access Billing Section in BigQuery
+2. Click on Billing Export
+3. Enable exports to BigQuery and select a new project
+4. Wait untill tables are created
+5. Run queries
+
+
+# Using Data Transfer
+
+Select source:
+Cloud Billing Pricing
+Create a name
+Schedule it on your preference
+Select the bigquery dataset destination
+Select billing account.

@@ -1,0 +1,43 @@
+-- Initialize Terraform
+terraform -version
+
+-- Create a directory for your Terraform configuration and navigate to it by running the following command:
+mkdir tfinfra && cd $_
+
+-- Create provider.tf file
+  provider "google" {
+  project = "qwiklabs-gcp-03-28aec7a8da79"
+  region  = "us-east1"
+  zone    = "us-east1-b"
+}
+
+-- Initialize Terraform
+terraform init
+
+----- View implicit resource dependency ------
+
+-- create a new file instance.tf
+-- create variables.tf
+(By giving instance_type a default value, you make the variable optional. The instance_name, and instance_zone are required, and you will define them at run time.)
+
+-- create outputs.tf
+
+
+-- Assign a static IP
+Now add to your configuration by assigning a static IP to the VM instance in instance.tf
+
+-- run terraform init
+terraform init
+
+-- run terraform plan
+-- run terraform apply
+
+insert the variable names
+var.instance_name: myinstance
+
+var.instance_zone: us-east1-b
+
+Confirm the planned actions by typing yes.
+
+Note: Observe that Terraform handles implicit dependency automatically by creating a static IP address before the instance.
+

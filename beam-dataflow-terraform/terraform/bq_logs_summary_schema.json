@@ -1,0 +1,17 @@
+[
+    {
+      "name": "log_level",
+      "type": "STRING",
+      "mode": "Required"
+    },
+    {
+      "name": "count_occurrences",
+      "type": "INTEGER",
+      "mode": "Required"
+    },
+    {
+      "name": "window_snapshot",
+      "type": "TIMESTAMP",
+      "mode": "Required"
+    }
+  ]

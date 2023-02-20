@@ -1,0 +1,29 @@
+Create Explicit Dependency
+Explicit dependencies are used to inform dependencies between resources that are not visible to Terraform. In this example, consider that you will run on your instance that expects to use a specific Cloud Storage bucket, but that dependency is configured inside the application code and thus not visible to Terraform. In that case, you can use depends_on to explicitly declare the dependency.
+
+create exp.tf
+
+
+Run the following command to preview the resources created.
+
+terraform plan
+
+If prompted, enter the details for the instance creation as shown below:
+
+var.instance_name: myinstance
+
+var.instance_zone: us-east1-b
+
+Run the following command to view the order of resource creation.
+
+terraform apply
+
+If prompted, enter the details for the instance creation as shown below:
+
+var.instance_name: myinstance
+
+var.instance_zone: us-east1-b
+
+Confirm the planned actions by typing yes.
+
+Observe that due explicit dependency, the compute instance is created after the creation of the Cloud Storage Bucket.

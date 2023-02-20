@@ -1,0 +1,52 @@
+1. Go to GCP Console and create a new VM Instance under Compute Engine Service (Using CentOS for this tutorial)
+2. Click on the created instance and then on SSH
+3. Run `sudo yum update -y`
+4. Run `sudo yum install wget unzip -y`
+5. Run `wget https://releases.hashicorp.com/terraform/0.12.21/terraform_0.12.21_linux_amd64.zip`
+6. Run `unzip terraform_0.12.21_linux_amd64.zip`
+7. run `mkdir temp`
+8. run `mv terraform temp`
+9. cd temp
+10. Export path to terraform `echo 'PATH="$PATH:~/temp"' >> .bash_profile`
+11. `source .bash_profile
+12. run `terraform`
+
+
+______
+Example 2 - Compute Engine and svc account
+
+1. sudo -i
+2. cd /
+3. terraform file in download folder
+4. echo "PATH='$PATH:/downloads/'" >> /etc/profile
+5. source /etc/profile
+6. run gcloud auth login
+7. Click on the link and allow, copy the key and paste the key back in terminal
+8. gcloud iam service-account keys create /downloads/terraform.json --iam-account <"svc-account-email-to-paste">
+9. create main.tf file
+
+vim main.tf
+
+```
+provider "google" {
+version = "3.5.0"
+
+credentials = "/downloads/terraform.json"
+
+project = "<project-name>"
+region = "us-central1"
+zone = "us-central-c"
+
+}
+
+resource "google_compute_network" "vpc_network" {
+    name = "new-terraform-network"
+}
+
+```
+
+Save file
+
+10. Run terraform init
+11. Run terraform plan
+12. Run terraform apply

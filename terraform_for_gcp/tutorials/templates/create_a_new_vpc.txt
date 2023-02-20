@@ -1,0 +1,32 @@
+Defining variables makes it easy to store and reuse values
+You can save your network variables in a different Terraform file, making it both easier to read and edit
+Terraform support three different types of format variables: string, list and map.
+
+Check main_configuration_file_vpc.tf file
+
+# Creating Firewalls and associated rules
+
+Creating a firewall will control access to and from services within our network
+The default VPC network will create firewall rules that are shown in the default rules
+But a manually created network you can have complete control over the firewall rules from start
+
+Basic Example:
+
+```
+resource "google_compute_firewall" "default" {
+
+name = "test-firewall"
+network = " google_compute_network.default.name
+allow {
+    protocol = "icmp"
+}
+allow {
+    protocol = "tcp"
+    ports = ["80","8080","1000-2000"]
+}
+
+source_tags = ["web"]
+
+}
+
+```

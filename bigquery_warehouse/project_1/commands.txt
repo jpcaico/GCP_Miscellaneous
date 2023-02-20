@@ -1,0 +1,138 @@
+# Check the current setup using command line
+
+gcloud info
+
+# Configure new environment
+
+gcloud init
+create new configuration
+
+#Create a bucket
+dw-bucket-jpcaico
+
+# export file to gcs
+
+export DESTINATION_BUCKET_NAME=dw-bucket-jpcaico
+
+gsutil cp -r dataset/* gs://$DESTINATION_BUCKET_NAME/from-git/
+
+# Requirements Scenario 1
+
+As a regional manager user, I want to know the top two region IDs, ordered by the total capacity of the stations in that region.
+2. As a regional manager, I want to download the answers to my questions as CSV files to my local computer.
+3. The data source table is the station table, which is located in the CloudSQL-MySQL database.
+4. There will be more data sources in the future besides the station table.
+
+
+Based on the scenarios, we will try to work on the diagram 1
+
+Step 1: Create a MySQL database in CloudSQL
+
+1. Create a CloudSQL instance.
+2. Connect to the MySQL instance.
+3. Create a MySQL database.
+4. Create a table in the MySQL database.
+5. Import CSV data into the MySQL database.
+
+Create a CloudSQL instance
+
+gcloud sql instances create mysql-instance-jpcaico  \
+--database-version=MYSQL_5_7 \
+--tier=db-g1-small \
+--region=us-central1 \
+--root-password=mysqlpassword \
+--availability-type=zonal \
+--storage-size=10GB \
+--storage-type=HDD
+
+mysql-instance-jpcaico
+mysqlpassword
+
+Connect to MySQL instance
+
+gcloud sql connect mysql-instance-jpcaico --user=root
+
+Create MySQL database
+
+CREATE DATABASE apps_db;
+
+SHOW DATABASES;
+
+Create Table in MySQL database
+
+CREATE TABLE apps_db.stations(
+    station_id varchar(255),
+    name varchar(255),
+    region_id varchar(10),
+    capacity integer
+);
+
+Import CSV data into the MySQL database
+
+Go to the console and navigate to the mysql instance
+Click the Import button
+select the stations.csv file
+Change the File format option to CSV.
+Input the destination database, apps_db, and the table name, stations.
+
+Check the imported files
+
+SELECT * FROM apps_db.stations LIMIT 10;
+
+Exit the shell if its all good
+exit
+
+Step 2: Extract data from MySQL to GCS
+
+First, add the Storage Object permisison to the mysql service account (get it from the mysql console page - just scroll down)
+Access IAM & Permission and create a new principle for this service account
+
+Run 
+
+bucket_name=dw-bucket-jpcaico
+gcloud sql export csv mysql-instance-jpcaico \
+gs://$bucket_name/mysql_export/stations/20180101/stations.csv \
+--database=apps_db \
+--offload \
+--query='SELECT * FROM stations WHERE station_id <= 200;'
+gcloud sql export csv mysql-instance-jpcaico \
+gs://$bucket_name/mysql_export/stations/20180102/stations.csv \
+--database=apps_db \
+--offload \
+--query='SELECT * FROM stations WHERE station_id <=400;'
+
+
+Delete the instance for cost saving
+gcloud sql instances delete mysql-instance-jpcaico
+
+
+Step 3. Load GCS to BigQuery
+
+Create a dataset named raw_bikesharing
+
+Create table from the csv file stored in gcs
+[your bucket name]/mysql_export/stations/20180101/
+stations.csv
+
+table name: stations
+schema: edit as text: 
+station_id:STRING,name:STRING,region_id:STRING,capacity:INTEGER
+
+Step 4: Create a BigQuery data mart
+
+Create new dataset with name dm_regional_manager
+
+This is where we are going to attack the statement:
+As a business user, I want to know the top two region IDs, ordered by the total stations' capacity in that region.
+
+Now we have two options for the query results:
+• Create a table.
+• Create a view.
+
+Create view
+
+CREATE VIEW `[your project id].dm_regional_manager.top_2_
+region_by_capacity`
+AS
+SELECT region_id, SUM(capacity) as total_capacity
+FROM `[your project id].raw_bikesharing.stations`

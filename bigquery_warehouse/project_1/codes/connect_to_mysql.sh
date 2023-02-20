@@ -1,0 +1,1 @@
+gcloud sql connect mysql-instance-jpcaico --user=root
