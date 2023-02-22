@@ -1,0 +1,177 @@
+Provisioning Cloud Composer in a GCP project
+
+1. Go to Composer service in BigQuery
+2. Enable the API if requested
+3. Click "create environment - Composer 1"
+4. Choose us-central1 region or other region of your preference
+5. Choose other required attributes as per need
+ 
+ Exercise1 : Build data pipeline orchestration using Cloud Composer
+
+• Level 1: Learn how to create a DAG and submit it to Cloud Composer.
+• Level 2: Learn how to create a BigQuery DAG.
+• Level 3: Learn how to use variables.
+• Level 4: Learn how to apply task idempotency.
+• Level 5: Learn how to handle late data.
+
+Level 1 DAG – Creating dummy workflows
+
+Deploying the DAG file into Cloud Composer
+
+It will automatically create a bucket for your composer environment
+
+
+gcloud composer environments storage dags import \
+  --environment ENVIRONMENT_NAME \
+  --location LOCATION \
+  --source LOCAL_PATH \
+
+gcloud composer environments storage dags import \
+  --environment composer-example \
+  --location us-central1 \
+  --source level_1_dag.py 
+
+To delete:
+gcloud composer environments storage dags delete \
+--environment [Your Cloud composer environment name] \
+--location [Your Cloud composer region] \
+[DAG Python file].py
+
+Level 2 DAG – Scheduling a pipeline from Cloud SQL to GCS and BigQuery datasets
+
+1. Create a Cloud SQL instance.
+2. Configure the Cloud SQL service account identity and access management (IAM) permission as GCS Object Admin.
+3. Create a stations table from the MySQL console.
+4. Import the stations table data from a comma-separated values (CSV) file.
+
+bucket_name=dw-bucket-jpcaico
+gcloud sql export csv mysqlinstance \
+gs://$bucket_name/mysql_export/stations/20180101/stations.csv \
+--database=apps_db \
+--offload \
+--query='SELECT * FROM stations WHERE station_id <= 200;'
+
+gcloud sql export csv mysqlinstance \
+gs://$bucket_name/mysql_export/stations/20180102/stations.csv \
+--database=apps_db \
+--offload \
+--query='SELECT * FROM stations WHERE station_id <=400;'
+
+deploy
+level_2_dag.py
+
+gcloud composer environments storage dags import \
+  --environment composer-example \
+  --location us-central1 \
+  --source level_2_dag.py 
+
+
+Level 3 DAG – Parameterized variables
+
+We have three options for declaring variables, as follows:
+1. Environment variables
+2. Airflow variables
+3. DAG variables
+
+DAG variables are variables that we already used, the variables that live in the DAG script, applicable only to the DAG.
+The higher-level variables are Airflow variables. You can call Airflow variables from all of your DAG.
+Let's create one by following these steps:
+1. Go to Airflow web UI.
+2. In the top menu bar, find and click Admin | Variables
+3. In the Airflow Variables page, let's create a new variable by clicking the
+Create button.
+
+key: level_3_dag_settings
+val: {"gcs_source_data_bucket":"bucket-name", "bq_raw_dataset":"raw_bikesharing", "bq_dwh_
+dataset":"dwh_bikesharing" }
+
+Notice that the value is defined as a JSON string. This is the recommendation compared to declaring each parameter as individual Airflow variables—for example, key: bq_dwh_ dataset; value: dwh_bikesharing.
+
+The last and broadest-level variables are environment variables. To set an environment variable, you can set it in the Cloud Composer UI. Follow this step to add one:
+1. Go to the Cloud Composer Console webpage.
+2. Choose your Cloud Composer environment—for example, mine is packt- composer-env.
+
+3. Find the ENVIRONMENT VARIABLES button and click it.
+4. Click Edit.
+5. On the Environment variables page, click ADD ENVIRONMENT VARIABLE.
+6. For Input Name, insert MYSQL_INSTANCE_NAME (all in uppercase).
+7. For Input Value, insert mysql-instance (your Cloud SQL instance name).
+8. Click Save.
+
+Airflow macro variables are variables that return information about the DAG Run. For example, you can get the execution date, DAG ID, and task ID. You can see a full list of macros in the Airflow public documentation at the following link:
+https://airflow.apache.org/docs/apache-airflow/stable/macros-
+ref.html
+
+One variable that is essential for our data pipeline is the execution date. This is a very important and useful variable that you should use to build your data pipeline. To use the execution date in a DAG, you can use this code:
+execution_date = '{{ ds }}'
+
+Loading bike-sharing tables using Airflow
+
+In the previous exercise, we created our tasks for loading the stations table. Next, we will create tasks for loading regions and trips tables.
+The regions table will be loaded from a GCS bucket, and for the trips table, we will extract from the BigQuery public dataset this time. The DAG will look like diagram_dag_1
+
+1. Open Cloud Shell.
+2. Run this command in Cloud Shell:
+bq --location=us mk \
+--dataset \
+beam-dataflow-376917:temporary_staging
+
+Copy schema files to gcs bucket
+
+gsutil cp -r /Users/jalvi/Desktop/github-personal/GCP_Miscellaneous/orchestration_composer/project_1/schema/* gs://us-central1-composer-exampl-34750cfc-bucket/data/schema/
+
+gcloud composer environments storage dags import \
+  --environment composer-example \
+  --location us-central1 \
+  --source level_3_dag.py 
+
+Understanding Airflow backfilling, rerun, and catchup
+
+In a data pipeline, we often need to handle data from the past. This is a very common scenario in data engineering. Most of the time, applications as the data sources are created before a data lake or data warehouse, so we need to load data from the past. There are three main terms related to this.
+The first one is backfilling. Backfilling happens when you need to load data from the past
+In Cloud Composer, you can run backfilling using the gcloud command, like this:
+
+gcloud composer environments run \ ${your_composer_environment_
+name} \
+--location [your composer environment region] \
+backfill -- -s [your backfill start date] \
+-e [your backfill end date] [your dag id]
+
+
+The second one is a rerun. A rerun happens when you need to reload data from the past. The difference between a rerun and a backfill is that a rerun works for a DAG or tasks that have run before. The scenario of using a rerun is when a DAG or tasks have failed, so you need to rerun them
+
+You can trigger a rerun from the Airflow web UI. In the web UI, if you click Clear in either the DAG or task indicator (in the DAG Tree View), the DAG or task will retry, and that's what we call a rerun. A second option is using the gcloud command, like this
+
+gcloud composer environments run \
+[your composer environment name] \
+--location [your composer environment region] \
+clear -- [your dag id] -t [your tasks id or regex] -s \
+[your start date] -d [your end date]
+
+The third one is a catchup. A catchup happens when you deploy a DAG for the first time. A catchup is a process when Airflow automatically triggers multiple DAG Runs to load all expected date data. It's similar to a backfill, but the trigger happens automatically as intended
+
+Level 4 DAG – Guaranteeing task idempotency in Cloud Composer
+
+in this step  our trips table will be partitioned using a time-unit column, which is the start_date column, and the granularity of the partition is by DAY.
+With this, every time there is a rerun on a particular date, the table partition will be rewritten, but again, only on a specific partition date, as illustrated in the following diagram diagram_dag_4
+With this, your DAG and all tasks are idempotent. Imagine that you want to retry any tasks on any expected day—in that case, you do not need to worry. The tasks are safe to rerun and there will be no data duplication, thanks to the WRITE_TRUNCATE method. And also, for the partitioned_by date, the table will only rewrite the records on the rerun execution day.
+
+level_4_dag.py
+
+Level 5 DAG – Handling late data using a sensor
+
+The main goal of the Level 5 DAG is for us to understand how to handle late data. Handling late data means being able to create a flexible DAG runtime depending on the upstream data arrival.
+
+Airflow came up with a feature called a sensor. A sensor is a mechanism to check some conditions before starting a DAG Run.
+
+When you have GoogleCloudStorageObjectSensor in your DAG, this operator will watch over the GCS object in the given directory. The operator will check the existence of the file in that specific directory.
+If the object doesn't exist in the directory, the operator will wait. It will wait and keep checking every 60 seconds, and that's what you set in the poke_interval parameter. If you think about it, it will be very useful for our DAG dependencies, in that the downstream DAG can wait before it runs the other tasks.
+
+gsutil cp [your local git directory]/chapter-4/code/_
+SUCCESS gs://packt-data-eng-on-gcp-data-bucket/chapter-4/
+data/signal/_SUCCESS
+
+gcloud sql instances delete [CLOUDSQL INSTANCE NAME]
+
+gcloud composer environments delete [CLOUD COMPOSER
+ENVIRONMENT_NAME] --location [LOCATION]

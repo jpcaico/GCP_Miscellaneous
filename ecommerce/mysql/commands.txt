@@ -1,0 +1,57 @@
+1. Create Project
+
+ecommerce-e2e
+
+2. Enable services
+
+2. Create service account
+
+ecommerce-e2e-svc@ecommerce-e2e.iam.gserviceaccount.com
+
+3. Assign IAM roles for service account
+
+3. Generate key
+
+4. Update gcloud
+gcloud components Update
+
+5. Init profile
+
+gcloud init
+- create new configuration
+
+gcloud auth activate-service-account ecommerce-e2e-svc@ecommerce-e2e.iam.gserviceaccount.com --key-file=/Users/jalvi/Downloads/ecommerce-svc.json --project=ecommerce-e2e
+
+6. Create Bucket
+
+gcloud storage buckets create gs://ecommerce_e2e --project=ecommerce-e2e 
+
+5. Upload csv files to buckets
+Navigate to files folder
+
+gsutil cp *.csv gs://ecommerce_e2e/raw/
+
+6. Create Cloud SQL instance
+
+gcloud sql instances create ecommerce-instance  \
+--database-version=MYSQL_8_0 \
+--tier=db-g1-small \
+--region=us-central1 \
+--root-password=root \
+--availability-type=zonal \
+--storage-size=10GB \
+--storage-type=HDD \
+--no-deletion-protection
+
+To delete:
+gcloud sql instances delete ecommerce-instance
+
+
+7. Connect to SQL instance
+gcloud sql connect ecommerce-instance --user=root
+
+8. Create MySQL database
+
+CREATE DATABASE ecommerce;
+
+
