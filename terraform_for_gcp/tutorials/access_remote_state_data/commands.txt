@@ -1,0 +1,31 @@
+Terraform Remote State: Terraform can store details about resources to remote data stores like cloud storage buckets.
+Terraform Remote State Data Source: Terraform can access the state file for other Terraform configurations to access and stay up to date with dynamic values.
+
+
+# Create a Network Using Terraform with a Remote State GCS Backend
+
+Create a bucket with a globally unique name to store state files in.
+Create a terraform directory in Cloud Shell to work in.
+Create a network directory containing a main.tf file.
+Create a terraform code block defining providers and setting up remote state to target the bucket.
+Create a google_compute_network resource.
+Create a google_compute_subnetwork resource.
+Create an output block defining the subnet's name.
+Execute terraform init.
+Execute terraform apply.
+
+
+
+# Create a VM Deployed into the Network from Objective 1 Using the Remote State Data
+
+
+Create a bucket with a globally unique name to store state files in.
+Create a terraform directory in Cloud Shell to work in.
+Create a network directory containing a main.tf file.
+Create a terraform code block defining providers and setting up remote state to target the bucket.
+Create a google_compute_network resource.
+Create a google_compute_subnetwork resource.
+Create an output block defining the subnet's name.
+Execute terraform init.
+Execute terraform apply.
+

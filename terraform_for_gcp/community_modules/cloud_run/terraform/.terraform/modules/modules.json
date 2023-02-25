@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"cloud-run","Source":"registry.terraform.io/GoogleCloudPlatform/cloud-run/google","Version":"0.4.0","Dir":".terraform/modules/cloud-run"}]}

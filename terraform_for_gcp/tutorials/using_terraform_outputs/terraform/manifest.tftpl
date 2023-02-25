@@ -1,0 +1,4 @@
+[Terraform Managed VMs],
+%{ for addr in ip_addrs ~}
+[${addr}],
+%{ endfor ~}

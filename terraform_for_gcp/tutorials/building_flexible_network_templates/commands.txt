@@ -1,0 +1,19 @@
+# Create a 'networking' Module and Use It to Create a Small Development VPC
+
+Create a terraform directory to work in.
+Create a modules/networking directory, and create a main.tf inside of it.
+Define variables for environment, cidr_range, regions and subnet_size.
+Create a locals block and use the split(), element(), length(), and tonumber() Terraform functions to calculate the newbits value for the cidrsubnet() function argument.
+Create a google_compute_network resource.
+Create a google_compute_subnetwork resource. Use the count argument to create a subnet in each region in the regions variable. Use the cidrsubnet() function to calculate the ip_cidr_range based on the cidr_range variable.
+In the terraform directory, create a dev folder containing a main.tf file.
+Create a terraform block and a module referencing the modules/networking code. Set the environment to dev, the cidr_range to 10.10.0.0/24, regions to ["us-central1", "us-east1"], and subnet_size to 28.
+Execute terraform init.
+Execute terraform apply.
+
+# Using the Same Module, Create a Production VPC with a Larger CIDR Block and More Subnets
+
+In the terraform directory, create a prod folder containing a main.tf file.
+Create a terraform block and a module referencing the modules/networking code. Set the environment to prod, the cidr_range to 10.0.0.0/8, regions to ["us-central1", "us-east1", "us-east4", "us-west1"], and subnet_size to 24.
+Execute terraform init.
+Execute terraform apply.

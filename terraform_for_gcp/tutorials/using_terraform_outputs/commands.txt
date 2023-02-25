@@ -1,0 +1,27 @@
+# Create a 'vm' module and Deploy 2 VMs Based on the Module
+Create a terraform directory to work in.
+Create a modules directory and, inside it, create a vm directory.
+Create a terraform/vm/main.tf file.
+Create a terraform/main.tf file.
+Execute terraform init.
+Execute terraform apply.
+
+
+#Create a CSV File with the IP Addresses for All VMs Using Terraform
+Create a manifest.tftpl template file.
+Add template syntax to generate a CSV in the template file.
+Create a local_file resource.
+Execute terraform apply.
+Add another name to the vm_names variable.
+Execute terraform apply.
+
+
+Template files in Terraform are files that contain dynamic content that is generated from data or variables.
+They typically have an extension that identifies the type of file format they use, such as .tpl, .tf.tpl, or .json.tpl.
+Template files allow you to create dynamic content by defining placeholders in your template file that are replaced with real values at runtime.
+These placeholders can be populated with data from a variety of sources, such as Terraform variables, data sources, or external files.
+
+Template files can be used for a variety of purposes in Terraform, such as creating configuration files for cloud resources or generating code for other tools or systems.
+They can be used in combination with other Terraform resources and modules to create highly dynamic and flexible infrastructure.
+Terraform provides support for several template engines, including the native template provider, which is built into Terraform, and external providers like the consul-template provider.
+ The choice of template engine will depend on the specific needs of your project and the complexity of your template files.
