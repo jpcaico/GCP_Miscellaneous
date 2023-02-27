@@ -1,12 +1,13 @@
 1. Create Project
-
-ecommerce-e2e
+ecommerce-e2e-378902
 
 2. Enable services
 
 2. Create service account
 
-ecommerce-e2e-svc@ecommerce-e2e.iam.gserviceaccount.com
+
+ecommerce-e2e-svc@ecommerce-e2e-378902.iam.gserviceaccount.com
+
 
 3. Assign IAM roles for service account
 
@@ -20,16 +21,16 @@ gcloud components Update
 gcloud init
 - create new configuration
 
-gcloud auth activate-service-account ecommerce-e2e-svc@ecommerce-e2e.iam.gserviceaccount.com --key-file=/Users/jalvi/Downloads/ecommerce-svc.json --project=ecommerce-e2e
+gcloud auth activate-service-account ecommerce-e2e-svc@ecommerce-e2e-378902.iam.gserviceaccount.com --key-file=/home/jpalvim/Desktop/keys/ecommerce-e2e.json --project=ecommerce-e2e-378902
 
 6. Create Bucket
 
-gcloud storage buckets create gs://ecommerce_e2e --project=ecommerce-e2e 
+gcloud storage buckets create gs://ecommerce_endtoend --project=ecommerce-e2e-378902
 
 5. Upload csv files to buckets
 Navigate to files folder
 
-gsutil cp *.csv gs://ecommerce_e2e/raw/
+gsutil cp *.csv gs://ecommerce_endtoend/raw/
 
 6. Create Cloud SQL instance
 
@@ -53,5 +54,20 @@ gcloud sql connect ecommerce-instance --user=root
 8. Create MySQL database
 
 CREATE DATABASE ecommerce;
+USE ecommerce;
+
+9. Create Tables
+create_tables.sql
+
+10. add permission to cloud sql instance svc account to manage gcs objects
+
+11. populate Tables
+yes | bash ingestion.sh 
 
 
+
+
+
+SELECT ord.order_id,  cust.customer_id, cust.customer_state FROM
+ orders ord  
+LEFT JOIN customers cust ON cust.customer_id = ord.customer_id limit 10;

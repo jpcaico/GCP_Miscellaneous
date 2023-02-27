@@ -1,23 +1,23 @@
 from google.cloud.sql.connector import Connector
 from google.cloud import storage
 import sqlalchemy
-from google.oauth2 import service_account
+from sqlalchemy import text
 
-project_id = 'ecommerce-e2e'
+import os
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/jpalvim/Desktop/keys/ecommerce-e2e.json"
+
+project_id = 'ecommerce-e2e-378902'
 region = 'us-central1'
-instance_name = 'ecommerce-instance-mysql'
-
-
-# GCS credentials
-credentials = service_account.Credentials.from_service_account_file('/Users/jalvi/Downloads/ecommerce-svc.json')
+instance_name = 'ecommerce-instance'
 
 
 # GCS file details
-bucket_name = 'ecommerce_e2e'  # 'your-bucket-name'
+bucket_name = 'ecommerce_endtoend'  # 'your-bucket-name'
 gcs_dir = "raw"
 
 # GCS bucket and file handling
-storage_client = storage.Client(credentials=credentials)
+storage_client = storage.Client()
 # credentials=credentials)
 bucket = storage_client.get_bucket(bucket_name)
 
@@ -27,8 +27,8 @@ print("Bucket storage class: {}".format(bucket.storage_class))
 
 INSTANCE_CONNECTION_NAME = f"{project_id}:{region}:{instance_name}" 
 print(f"Your instance connection name is: {INSTANCE_CONNECTION_NAME}")
-DB_USER = 'root'
-DB_PASS = "admin"
+DB_USER = "root"
+DB_PASS = "root"
 DB_NAME = "ecommerce"
 
 # initialize Connector object
@@ -69,16 +69,16 @@ for table, filename in table_files.items():
     blob = bucket.get_blob(filename)
     print(f"Working on table {table}..")
     # Download the file to a local temporary file
-    temp_file_name = '/tmp/temp_file.csv'
+    temp_file_name = '/home/jpalvim/Desktop/github/GCP_Miscellaneous/ecommerce/mysql/data/temp_file.csv'
     blob.download_to_filename(temp_file_name)
     print(f"Downloaded {table} to temporary file..")
     # Execute the LOAD DATA INFILE command to load the data into the table
     # connect to connection pool
     with pool.connect() as db_conn:
         # build the LOAD DATA INFILE statement and execute it
-        load_sql = f"LOAD DATA INFILE '{temp_file_name}' INTO TABLE {table} FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 ROWS"
-
-        db_conn.execute(load_sql)
+        load_sql = f"LOAD DATA LOCAL INFILE '{temp_file_name}' INTO TABLE {table} FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 ROWS"
+        print(load_sql)
+        db_conn.execute(text(load_sql))
 
         print(f"Data loaded for table {table}")
  
