@@ -1,0 +1,36 @@
+# Set Up a Cloud Source Repository (CSR) with the Terraform Code to Create a ‘dev’ Environment
+
+1. Enable Source Repos and Cloud Build:
+gcloud services enable sourcerepo.googleapis.com cloudbuild.googleapis.com iam.googleapis.com
+2. Create a bucket to store your project's state: gsutil mb gs://<PROJECT ID>
+3. Create a repository: gcloud source repos create ci-app
+4. Check out the repo: gcloud source repos clone ci-app
+5. Open the repo: cd ci-app
+6. Create a dev branch: git checkout -b dev
+7. Create modules/web and cd into the directory
+8. Copy the module code into the web directory: wget https://raw.githubusercontent.com/ACloudGuru-Resources/content-advanced-terraform-with-gcp/main/automation_lab/main.tf
+9. Copy the template code into the web directory: wget https://raw.githubusercontent.com/ACloudGuru-Resources/content-advanced-terraform-with-gcp/main/automation_lab/index.html
+10. In the ci-app directory, create a dev directory with a main.tf file
+11. Add a terraform block to dev/main.tf, setting the backend to the bucket you created
+12. Create a web_app module from the module directory — be sure to set the env variable, and set an output for the host IP
+13. In the ci-app directory, copy the cloudbuid.yaml file with: wget https://raw.githubusercontent.com/ACloudGuru-Resources/content-advanced-terraform-with-gcp/main/automation_lab/cloudbuild.yaml
+14. Set your git configuration: git config --global user.email "wes@not.real" and git config --global user.name "Wes"
+15. Commit the code with: git add --a and git commit -m 'added module code'
+16. Push the code to the CSR: git push --set-upstream origin dev
+
+# Configure a Cloud Build Trigger Connected to the CSR
+
+In the GCP console, go to Cloud Build
+Click on Triggers in the left column
+Create a trigger
+Run the trigger to deploy the dev infrastructure
+Go to the IP output by the build run
+
+# Add a Branch and Configuration File to Create Infrastructure in the ‘prod’ Environment
+
+1. In Cloud Shell, create a prod directory
+git checkout -b prod
+2. Create prod/main.tf. Create a web_app module from the module directory — be sure to set the env variable, and set an output for the host IP
+3. Commit and push the new code to a new upstream branch: origin/prod
+4. View the build logs in the console
+5. Go to the IP output by the build run

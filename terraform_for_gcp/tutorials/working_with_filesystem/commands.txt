@@ -1,0 +1,16 @@
+# Create a Custom GCP Role with the Permissions Listed in the 'compute_audit.txt' File
+
+Create a terraform directory to work in for this lab.
+Run wget https://raw.githubusercontent.com/linuxacademy/content-advanced-terraform-with-gcp/main/filesystem_lab/compute_audit.txt to copy the compute permissions file into your directory and review the permissions.
+Create a main.tf file.
+Define a provider and a google_project_iam_custom_role.
+Use the split and file() functions to set the permissions argument to the contents of the text file.
+Run terraform init.
+Run terraform apply
+
+# Update the Terraform Code to Create a Custom Role for All '.txt' Files in the Directory
+
+Run https://raw.githubusercontent.com/linuxacademy/content-advanced-terraform-with-gcp/main/filesystem_lab/storage_audit.txt to copy the storage permissions file into your directory and review the permissions.
+Update the role using the for_each meta-argument and fileset() function to create a role for each text file.
+Run terraform init.
+Run terraform apply.

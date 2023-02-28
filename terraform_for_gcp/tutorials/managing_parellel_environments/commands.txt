@@ -1,0 +1,26 @@
+# Create an 'app' Module and Use It to Deploy Resources
+
+Create a terraform directory to work in.
+Create a modules/app directory.
+Add the main.tf file to the app module by running wget https://raw.githubusercontent.com/linuxacademy/content-advanced-terraform-with-gcp/main/workspaces_lab/main.tf.
+Add the startup.sh file to the app module by running wget https://raw.githubusercontent.com/linuxacademy/content-advanced-terraform-with-gcp/main/workspaces_lab/startup.sh.
+In the terraform directory, create a main.tf file.
+Add a terraform block and set up the remote state backend.
+Create a storage bucket with gsutil mb.
+Add a module definition and an output of the IP address to the file.
+Run terraform init.
+Run terraform apply.
+Confirm the web server is accessible at the output IP.
+
+
+# Create a 'feature-1' Workspace to Deploy a Set of Identical Resources
+Create a new workspace with terraform workspace new feature-1.
+Run terraform plan to confirm none of the existing resources are accounted for.
+Run terraform apply to create resources in the new workspace.
+Check the Cloud Console to see that both the default and feature-1 VMs are running.
+
+# Update the Module So the 'default' Workspace Has 2 VMs and All Others Only Have 1
+Add a count meta-argument to the compute resource in the app module and update the name argument to iterate based on count.
+Switch back to the default workspace with terraform workspace select default.
+Run terraform apply to verify that there are now 2 planned VMs for this workspace, and then apply the changes.
+Switch back to the feature-1 workspace and rerun terraform apply. Since the naming pattern changed, that VM will also need to be recreated.
