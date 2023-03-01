@@ -1,0 +1,155 @@
+Source: https://cloud.google.com/community/tutorials/cicd-datalake-part-1
+
+Objectives:
+- Set up continuous integration and continuous delivery (CI/CD) for a data lake’s data processing pipelines by implementing CI/CD methods with Terraform, GitHub, and Cloud Build using the popular GitOps methodology.
+- Build serverless data processing and CI/CD pipelines.
+
+The general outline of the process is as follows:
+
+Create a Cloud Storage bucket.
+Load sample data and define schema and mapping files.
+Create a Dataflow pipeline.
+Create a dataset and table in BigQuery.
+Load data into the BigQuery table.
+
+1. Set up environment
+
+SA_ID=terraform-gcp (SA=Service Account)
+PROJECT_ID=$(gcloud config list --format 'value(core.project)')
+PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format='get(projectNumber)')
+SA_EMAIL=$SA_ID@$PROJECT_ID.iam.gserviceaccount.com
+BUCKET_NAME=$PROJECT_ID
+GITHUB_USERNAME=[YOUR_GITHUB_USERNAME]
+
+2. Enable APIs
+gcloud services enable cloudbuild.googleapis.com compute.googleapis.com bigquery-json.googleapis.com storage.googleapis.com dataflow.googleapis.com --project $PROJECT_ID
+
+3. Create a service account if you don't have one
+gcloud iam service-accounts create $SA_ID \
+  --display-name $SA_ID \
+  --project $PROJECT_ID
+
+4. Add IAM roles to the svc account
+for role in bigquery.admin storage.admin dataflow.admin compute.admin dataflow.worker; do \
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/$role"; \
+  done
+
+5. Add the IAM roles to the default Cloud Build service account:
+for role in bigquery.admin storage.admin dataflow.admin compute.admin dataflow.worker; do \
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/$role"; \
+done
+
+6. Add the Cloud Build service account as a service account user of the created service account within the project:
+
+-------
+
+Set up your GitHub repository
+You use a single GitHub repository to define your cloud infrastructure and orchestrate this infrastructure by having different branches corresponding to different environments:
+
+The dev branch contains the latest changes that are applied to the development environment.
+The prod branch contains the latest changes that are applied to the production environment.
+
+1. In Cloud Shell, clone the Google Cloud Community repository:
+```
+cd ~
+
+git clone https://github.com/GoogleCloudPlatform/community.git
+```
+
+2. Create a new repository in your GitHub account.
+
+3. Add your project to your repository
+
+cd ~/community/tutorials/cicd-datalake-part-1/
+
+echo "# cicd-datalake-part-1" >> README.md
+git init
+git add .
+git commit -m "commit CICD data lake project"
+git branch -M dev
+git branch -M prod
+
+git remote add origin https://github.com/$GITHUB_USERNAME/cicd-datalake-part-1.git
+
+git push -u origin dev
+git push -u origin prod
+
+
+--------
+Set up your Cloud Storage buckets
+
+1. Create a Cloud Storage bucket to store raw unprocessed sample data files and mapping files required to build data processing pipelines.
+
+gsutil mb -c standard -l us-west1 gs://$BUCKET_NAME
+
+2. Upload the contents from testdata folder into the Cloud Storage bucket:
+The testdata/ folder contains the test data and mapping scripts to build data processing pipeline.
+
+cd ~/community/tutorials/cicd-datalake-part-1/testdata
+gsutil cp *.* gs://$BUCKET_NAME
+gsutil ls gs://$BUCKET_NAME
+
+---------
+
+Connect Cloud Build to your GitHub repository
+
+1. Go to the GitHub Marketplace page for the Cloud Build app.
+
+2. If this is your first time configuring an app in GitHub, click Setup with Google Cloud Build. Otherwise, click Edit your plan, select your billing information and, on the Edit your plan page, click Grant this app access.
+
+3. On the Install Google Cloud Build page, select Only select repositories and enter [YOUR_GITHUB_USERNAME]/cicd-datalake-part-1 to connect to your repository.
+
+4. Click Install.
+
+5. Sign in to Google Cloud.
+
+6. The Authorization page is displayed. You are asked to authorize the Cloud Build GitHub app to connect to Google Cloud.
+
+7. Click Authorize Google Cloud Build by GoogleCloudBuild.
+
+8. You are redirected to the Cloud Console.
+
+9. Select the Google Cloud project you are working on. If you agree to the terms and conditions, select the checkbox, and then click Next.
+
+10. In Repository selection, select [YOUR_GITHUB_USERNAME]/cicd-datalake-part-1 to connect to your Google Cloud project, and then click Connect repository.
+
+11. Click Skip for now on the next screen.
+
+12. Click Done.
+
+The Cloud Build GitHub app is now configured and your GitHub repository linked to your Google Cloud project. From now on, any changes to the GitHub repository will trigger Cloud Build executions, which report the results back to GitHub by using GitHub checks.
+
+------------
+
+Configure a build trigger to respond to changes in your GitHub repository
+
+Go to the Cloud Build Triggers page in the Cloud Console.
+
+Click Create trigger.
+
+Provide the Name and Description of your trigger.
+
+In the Event section, select Push to a branch.
+
+In the Source section, do the following:
+
+Repository: Select your repository.
+Branch: Select .*(any branch).
+In the Build configuration section, select Cloud Build configuration file.
+
+In the Cloud Build configuration file location field, specify the file location as cloudbuild.yaml after the /.
+
+In the Advanced section, click Add variable and add your environment variables such as ProjectID, ServiceAccountEmail, Region,
+and SourceDatabucket. Use the following naming standard, which refers to variables created in previous sections:
+
+```
+_PROJECT_ID=[YOUR_PROJECT_ID]
+_REGION=[YOUR_REGION]
+_SERVICE_ACCOUNT_EMAIL=[YOUR_SERVICE_ACCOUNT_EMAIL_ADDRESS]
+_SOURCE_GCS_BUCKET=[YOUR_SOURCE_FILE_CLOUD_STORAGE_BUCKET]
+
+```
